@@ -1,0 +1,38 @@
+{{- if .Values.ingress.enabled -}}
+{{- $T := . -}}
+{{- range $k, $v := .Values.ingress.hosts }}
+{{- if ne $v "<disabled>" -}}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "connectclub-jvbuster.fullname" $T }}{{ if ne $k "main" }}{{ printf "-%s" $k }}{{ end }}
+  labels:
+    {{- include "connectclub-jvbuster.labels" $T | nindent 4 }}
+  {{- with $T.Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  rules:
+  - host: {{ $v }}
+    http:
+      paths:
+      - backend:
+          service:
+            name: {{ include "connectclub-jvbuster.fullname" $T }}
+            port:
+              number: {{ $T.Values.service.port }}
+        path: /
+        pathType: ImplementationSpecific
+  tls:
+  - hosts:
+    - {{ $v }}
+    {{- if eq $k "main" }}
+    secretName: {{ include "connectclub-jvbuster.fullname" $T }}-tls
+    {{- else }}
+    secretName: {{ include "connectclub-jvbuster.fullname" $T }}-{{ $k }}-tls
+    {{- end -}}
+{{- end -}}
+{{- end }}
+{{- end }}

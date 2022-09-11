@@ -1,0 +1,32 @@
+envs:
+  IMAGE_RESIZER_BASE_URL: https://pics-ng.stage.connect.club
+  NODE_OPTIONS: "--max_old_space_size=4096"
+  NODE_ENV: stage
+
+config:
+  MESSENGER_TRANSPORT_DSN: SECRET_FROM_GITLAB
+  POSTGRES_HOST: api-stage-postgres-stage
+  POSTGRES_USER: postgres
+  POSTGRES_PASS: SECRET_FROM_GITLAB
+  POSTGRES_DB: connect_club
+  NEO4J_URL: neo4j://neo4j-stage
+  NEO4J_USER: neo4j
+  NEO4J_PASS: SECRET_FROM_GITLAB
+  MORALIS_KEY: empty
+
+ingress:
+  enabled: false
+
+internalLoadBalancer:
+  enabled: true
+
+resources:
+  requests:
+    cpu: 200m
+    memory: 2Gi
+
+livenessProbe:
+  httpGet:
+    path: /users/dummy
+    port: http
+  periodSeconds: 20

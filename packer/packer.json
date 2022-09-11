@@ -1,0 +1,51 @@
+{
+  "variables": {
+    "project_id": "",
+    "zone": "",
+    "git_commit_sha": "",
+    "ssh_key": "",
+    "maven_token": "glpat-8C_sUkxo_KyMmnNs-ymK"
+  },
+  "builders": [
+    {
+      "type": "googlecompute",
+      "project_id": "{{ user `project_id` }}",
+      "machine_type": "n1-standard-1",
+      "zone": "{{ user `zone` }}",
+      "source_image_family": "ubuntu-1804-lts",
+      "ssh_username": "packer",
+      "disk_size": "10",
+      "instance_name": "videobridge-builder",
+      "subnetwork": "default",
+      "image_name": "videobridge-{{ user `git_commit_sha` }}"
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "file",
+      "source": "videobridge.service",
+      "destination": "/tmp/videobridge.service"
+    },
+    {
+        "type": "file",
+        "source": "node_exporter.service",
+        "destination": "/tmp/node_exporter.service"
+    },
+    {
+      "type": "file",
+      "source": "maven-settings.xml",
+      "destination": "/tmp/maven-settings.xml"
+    },
+    {
+      "type": "shell",
+      "scripts": [
+        "build-videobridge.sh"
+      ],
+      "environment_vars": [
+        "GIT_COMMIT_SHA={{ user `git_commit_sha` }}",
+        "SSH_KEY={{ user `ssh_key` }}",
+        "MAVEN_TOKEN={{ user `maven_token` }}"
+      ]
+    }
+  ]
+}

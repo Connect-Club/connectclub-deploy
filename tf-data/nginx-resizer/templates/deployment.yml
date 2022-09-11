@@ -1,0 +1,65 @@
+---
+apiVersion:  apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.appName }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Values.appName }}
+spec:
+  replicas: {{ .Values.appReplicaCount | default "1" }}
+  strategy:
+    type: {{ .Values.deploymentStrategyType | default "RollingUpdate" }}
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.appName }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.appName }}
+    spec:
+      imagePullSecrets:
+        - name:  {{ .Values.registrySecret }}
+      containers:
+        - name: {{ .Values.appName }}
+          image: {{ .Values.image }}
+          imagePullPolicy: {{ .Values.pullPolicy | default "Always" }}
+          ports:
+            - containerPort: {{ .Values.appContainerPort }}
+              protocol: TCP
+          env:
+            - name: SET_REAL_IP_FROM
+              value: {{ .Values.setRealIpFrom }}
+            - name: STORAGE_SCHEME
+              value: {{ .Values.storageScheme }}
+            - name: STORAGE_SERVER
+              value: {{ .Values.storageServer }}
+            - name: STORAGE_PORT
+              value: "{{ .Values.storagePort }}"
+            - name: STORAGE_BUCKET
+              value: {{ .Values.storageBucket }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      affinity:
+        podAntiAffinity:
+          {{ if eq .Values.podAffinity "hard" -}}
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - {{ .Values.appName }}
+            topologyKey: "kubernetes.io/hostname"
+          {{- else -}}
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 1
+            podAffinityTerm:
+              topologyKey: kubernetes.io/hostname
+              labelSelector:
+                matchLabels:
+                  app: {{ .Values.appName }}
+          {{- end }}

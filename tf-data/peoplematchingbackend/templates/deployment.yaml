@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "peoplematchingbackend.fullname" . }}
+  labels:
+    {{- include "peoplematchingbackend.labels" . | nindent 4 }}
+spec:
+  {{- with .Values.replicaCount }}
+  replicas: {{ . }}
+  {{- end }}
+  {{- with .Values.strategy }}
+  strategy:
+  {{- toYaml . | nindent 4 }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "peoplematchingbackend.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "peoplematchingbackend.selectorLabels" . | nindent 8 }}
+    spec:
+    {{- with .Values.imagePullSecret }}
+      imagePullSecrets:
+        - name: {{ . }}
+    {{- end }}
+      containers:
+        - name: backend
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy | default "IfNotPresent" }}
+          env:
+          {{- range $k, $v := .Values.envs }}
+            - name: {{ $k }}
+              value: {{ $v | quote }}
+          {{- end }}
+          envFrom:
+            - secretRef:
+                name: {{ include "peoplematchingbackend.fullname" . }}
+          ports:
+            - name: {{ .Values.service.portName | default "http" }}
+              containerPort: {{ .Values.service.containerPort | default 8080 }}
+              protocol: TCP
+          {{- with .Values.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.readnessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}

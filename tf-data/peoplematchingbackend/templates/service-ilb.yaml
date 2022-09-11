@@ -1,0 +1,21 @@
+{{- if .Values.internalLoadBalancer.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    networking.gke.io/load-balancer-type: Internal
+    cloud.google.com/load-balancer-type: "Internal"
+    networking.gke.io/internal-load-balancer-allow-global-access: "true"
+  name: {{ include "peoplematchingbackend.fullname" . }}-ilb
+  labels:
+    {{- include "peoplematchingbackend.labels" . | nindent 4 }}
+spec:
+  ports:
+  - name: http
+    port: {{ .Values.service.port }}
+    protocol: TCP
+    targetPort: http
+  selector:
+    {{- include "peoplematchingbackend.selectorLabels" . | nindent 4 }}
+  type: LoadBalancer
+{{- end }}

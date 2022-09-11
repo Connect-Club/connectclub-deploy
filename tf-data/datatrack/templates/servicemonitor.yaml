@@ -1,0 +1,21 @@
+{{- if .Values.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  namespace: {{ .Values.serviceMonitor.namespace }}
+  name: {{ include "datatrack.fullname" . }}
+  labels:
+    {{- include "datatrack.labels" . | nindent 4 }}
+spec:
+  jobLabel: {{ include "datatrack.fullname" . }}
+  selector:
+    matchLabels:
+      {{- include "datatrack.selectorLabels" . | nindent 6 }}
+  namespaceSelector:
+    matchNames:
+      - "{{ default .Values.serviceMonitor.selectorNamespace .Release.Namespace }}"
+  endpoints:
+  - port: metrics
+    interval: 1s
+    path: /
+{{- end }}

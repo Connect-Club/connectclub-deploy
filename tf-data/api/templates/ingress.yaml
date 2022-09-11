@@ -1,0 +1,43 @@
+{{- if .Values.ingress.enabled -}}
+{{- $T := . -}}
+{{- $C := .Capabilities }}
+{{- range $k, $v := .Values.ingress.hosts }}
+{{- if ne $v "<disabled>" -}}
+---
+{{- if semverCompare ">=1.14-0" $T.Capabilities.KubeVersion.GitVersion -}}
+apiVersion: networking.k8s.io/v1
+{{- else -}}
+apiVersion: extensions/v1
+{{- end }}
+kind: Ingress
+metadata:
+  name: {{ include "api.fullname" $T }}{{ if ne $k "main" }}{{ printf "-%s" $k }}{{ end }}
+  labels:
+    {{- include "api.labels" $T | nindent 4 }}
+  {{- with $T.Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  rules:
+  - host: {{ $v }}
+    http:
+      paths:
+      - backend:
+          service:
+            name: {{ include "api.fullname" $T }}
+            port:
+              number: {{ $T.Values.service.port }}
+        path: /
+        pathType: ImplementationSpecific
+  tls:
+  - hosts:
+    - {{ $v }}
+    {{- if eq $k "main" }}
+    secretName: {{ include "api.fullname" $T }}-tls
+    {{- else }}
+    secretName: {{ include "api.fullname" $T }}-{{ $k }}-tls
+    {{- end -}}
+{{- end -}}
+{{- end }}
+{{- end }}

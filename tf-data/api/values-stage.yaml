@@ -1,0 +1,89 @@
+config:
+  APP_ENV: prod
+  APP_SECRET: SECRET_FROM_GITLAB
+  #Facebook authorization OAuth2 settings
+  FACEBOOK_OAUTH_APP_ID: SECRET_FROM_GITLAB
+  FACEBOOK_OAUTH_SECRET: SECRET_FROM_GITLAB
+  FACEBOOK_OAUTH_DEFAULT_GRAPH_VERSION: v3.2
+  FACEBOOK_OAUTH_REDIRECT_URI: "https://cnnct.dev/api/auth/facebook/callback"
+
+  #Google authorization OAuth2 settings
+  GOOGLE_OAUTH_APP_ID: "empty"
+  GOOGLE_OAUTH_SECRET: SECRET_FROM_GITLAB
+  GOOGLE_OAUTH_REDIRECT_URI: "https://cnnct.dev/api/auth/google/callback"
+
+  #Google cloud Storage configuration
+  GOOGLE_CLOUD_STORAGE_BUCKET: "api-files-api-test-268710"
+  GOOGLE_CLOUD_STORAGE_BUCKET_MOBILE_APP_LOGS: "api-files-test-logs"
+  GOOGLE_CLOUD_STORAGE_KEY_FILE: "/var/www/key.json"
+  GOOGLE_CLOUD_STORAGE_PROJECT_ID: "api-test-268710"
+  GOOGLE_OAUTH_ALLOWED_CLIENT_IDS: "654472276281-9vonbu0svci7pc28ub31g2m5laahmsem.apps.googleusercontent.com,654472276281-7qjv7hcsgmv0mefftif03h1865gi83h2.apps.googleusercontent.com,654472276281-hpvti35mavr025k17o1e7uqr08rbmmrr.apps.googleusercontent.com"
+
+  APNS_NOTIFICATION_CERTIFICATE: "/var/www/aps.cer" # check apnCertificateName
+  APNS_NOTIFICATION_CERTIFICATE_PASS_PHRASE: ""
+  APNS_APP_BUNDLE_ID: "club.connect.ConnectClub"
+  GCM_NOTIFICATION_KEY: ""
+  PUSH_NOTIFICATION_ENVIRONMENT: dev
+
+  NEW_RELIC_LICENSE: SECRET_FROM_GITLAB
+  NEW_RELIC_APP_NAME: "stage.connect.lol"
+
+  #Jabber configuration
+  JABBER_DOMAIN: "jabber.stage.connect.lol"
+  JABBER_MUC: "conference.jabber.stage.connect.lol"
+  JABBER_PUSH_TOKEN: "LHyXPrAmIweIYmP0a314mQED"
+
+  #slack
+  SLACK_CHANNEL_STATISTICS_NAME: meeting-stats-stage
+  SLACK_CHANNEL_COMPLAINT_NAME: meeting-complaint-stage
+  SLACK_CHANNEL_MOBILE_APP_LOGS_NAME: mobile-app-logs-stage
+  SLACK_CHANNEL_VIDEO_ROOM_STATISTICS_NAME: meeting-stats-stage
+  SLACK_CHANNEL_SUSPICIOUS_USER: suspicious-stage
+
+  AMPLITUDE_ENABLE: "1"
+
+  NOTIFICATION_PUSHER_SERVER: "http://push-sender-stage:8080"
+
+  SENTRY_DSN: "empty"
+
+  STAGE: '1'
+
+  SCREEN_SHARING_HOST: "https://api-tv.stage.connect.club"
+
+  STRIPE_BACKEND_NAME: 'stage'
+  RTP_AUDIO_HOST: "https://rtp-audio-processor.stage.connect.club"
+
+postgresql:
+  enabled: true
+  nameOverride: postgres-stage
+  postgresqlDatabase: connect_club
+  # postgresqlUsername:
+  postgresqlPassword: SECRET_FROM_GITLAB
+
+  volumePermissions:
+    enabled: true
+
+  pgHbaConfiguration: |
+    host     all             all             10.52.0.0/14            md5
+    host     all             all             10.55.240.0/20          md5
+    host     connect_club    all             34.77.37.171/32         md5
+    # cyprus office
+    host     connect_club    all             87.228.229.62/32        md5
+    host     connect_club    all             46.251.112.139/32       md5
+    # gate machine for android test
+    host     connect_club    all             34.78.249.200/32        md5
+    local    all             all                                     md5
+    # minikube/loopback
+    host     all             all             127.0.0.0/8             md5
+
+ingress:
+  hosts:
+    main: stage.connect.lol
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: 100m
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      more_set_headers "Access-Control-Allow-Origin *";

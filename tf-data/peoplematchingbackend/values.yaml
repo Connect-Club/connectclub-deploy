@@ -1,0 +1,79 @@
+# Default values for peoplematchingbackend
+
+# common nonsecret envs
+envs:
+  NODE_ENV: production
+
+# secret envs
+config:
+  POSTGRES_HOST: postgres
+  POSTGRES_USER: postgres
+  POSTGRES_PASS: password
+  POSTGRES_DB: connect_club
+  NEO4J_URL: neo4j://neo4j
+  NEO4J_USER: neo4j
+  NEO4J_PASS: neo4j
+  MORALIS_KEY: empty
+
+image:
+  repository: ghcr.io/connect-club/connectclub-peoplematchingbackend
+  pullPolicy: IfNotPresent
+  tag: master-snapshot
+
+imagePullSecret: "gitlab-registry"
+nameOverride: ""
+fullnameOverride: ""
+
+## services
+
+service:
+  type: ClusterIP
+  port: 80
+  containerPort: 8000
+
+ingress:
+  enabled: false
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  host: peoplematchingbackend.local
+
+
+## deployment config
+
+# replicaCount: 1
+
+readinessProbe:
+  httpGet:
+    path: /users/dummy
+    port: http
+
+livenessProbe: {}
+
+# strategy - Recreate | RollingUpdate
+strategy:
+  type: Recreate
+  # type: RollingUpdate
+  # rollingUpdate:
+  #   maxSurge: 1
+  #   maxUnavailable: 75%
+
+resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+## optional fiatures
+
+internalLoadBalancer:
+  enabled: false

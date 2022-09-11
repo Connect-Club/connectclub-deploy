@@ -1,0 +1,46 @@
+# Default values for connectclub-jvbuster.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: ghcr.io/connect-club/connectclub-jvbuster
+  tag: master-snapshot
+
+imagePullSecret: "gitlab-registry"
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: ClusterIP
+  port: 8081
+
+bucket_secret: google-bucket-credentials
+
+config:
+  REDIS_HOST: localhost
+  REDIS_PORT: 6379
+  PORT: 8081
+  GCLOUD_JVB_PROJECT:
+  GCLOUD_JVB_SUBNET:
+  JVB_CONFERENCE_NOTIFICATION_URL:
+  JVB_STATISTIC_NOTIFICATION_URL:
+  SPRING_PROFILES_ACTIVE: json-logs,gcloud-jvb
+  JVB_MIN_POOL_SIZE:
+  JVB_MACHINE_TYPE:
+  JVB_MACHINE_ENDPOINTS_CAPACITY:
+  GOOGLE_APPLICATION_CREDENTIALS: /etc/keys/key.json
+
+ingress:
+  enabled: false
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "86400"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "86400"
+    nginx.ingress.kubernetes.io/proxy-body-size: 100m
+  hosts:
+    main: jvbuster.local
+
+resources: {}

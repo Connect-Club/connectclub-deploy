@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "connectclub-jvbuster.fullname" . }}
+  labels:
+    {{- include "connectclub-jvbuster.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "connectclub-jvbuster.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "connectclub-jvbuster.selectorLabels" . | nindent 8 }}
+    spec:
+    {{- with .Values.imagePullSecret }}
+      imagePullSecrets:
+        - name: {{ . }}
+    {{- end }}
+      volumes:
+        - name: bucketkey
+          secret:
+            secretName: {{ .Values.bucket_secret }}
+      containers:
+        - name: jvbuster
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.pullPolicy | default "Always" }}
+          env:
+          {{- range $k, $v := .Values.config }}
+            - name: {{ $k }}
+              value: {{ $v | quote }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: 8081
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: bucketkey
+              mountPath: /etc/keys/key.json
+              subPath: key.json

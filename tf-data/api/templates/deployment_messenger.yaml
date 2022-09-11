@@ -1,0 +1,62 @@
+{{ $T := . }}
+{{ $fullname := (include "api.fullname" .) }}
+{{- range $k, $v := .Values.messengers }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ printf "%s-messenger-%s" $fullname $k | trunc 52 }}
+  labels:
+    {{- include "api.labels" $T | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "api.selectorLabels" $T | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "api.selectorLabels" $T | nindent 8 }}
+        api/role: messenger
+        api/messenger: {{ $k }}
+      {{- include "api.annotations" $T | nindent 6 }}
+    spec:
+    {{- with $T.Values.imagePullSecret }}
+      imagePullSecrets:
+        - name: {{ . }}
+    {{- end }}
+      volumes:
+        - name: bucketkey
+          secret:
+            secretName: {{ $T.Values.bucket_secret }}
+        - name: apiconfig
+          secret:
+            secretName: {{ $fullname }}
+        - name: apicerts
+          secret:
+            secretName: {{ $fullname }}-certs
+      containers:
+        - name: {{ $k }}
+          command:
+          - /bin/sh
+          - -c
+          - "{{ $v.command }}"
+          image: "{{ include "api.image" $T }}"
+          imagePullPolicy: {{ $T.Values.pullPolicy | default "Always" }}
+          resources:
+            {{- if $v.resources }}
+            {{- toYaml $v.resources }}
+            {{- else }}
+            {{- toYaml $T.Values.messengersDefaults.resources | nindent 12 }}
+            {{- end }}
+          volumeMounts:
+            - name: bucketkey
+              mountPath: /var/www/key.json
+              subPath: key.json
+            - name: apicerts
+              mountPath: /var/www/{{ $T.Values.apnCertificateName }}
+              subPath: {{ $T.Values.apnCertificateName }}
+          envFrom:
+          - secretRef:
+              name: {{ $fullname }}
+{{- end }}

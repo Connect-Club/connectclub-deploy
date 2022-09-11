@@ -1,0 +1,101 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "datatrack.fullname" . }}
+  labels:
+    {{- include "datatrack.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  {{- with .Values.strategy }}
+  updateStrategy:
+  {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.podManagmentPolicy }}
+  podManagementPolicy: {{ . }}
+  {{ end }}
+  serviceName: {{ include "datatrack.fullname" . }}
+  selector:
+    matchLabels:
+      {{- include "datatrack.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "datatrack.selectorLabels" . | nindent 8 }}
+      annotations:
+        checksum/config: {{ (print $.Values.config) | sha256sum }}
+    spec:
+    {{- with .Values.imagePullSecret }}
+      imagePullSecrets:
+        - name: {{ . }}
+    {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.terminationTimeout | default 60 }}
+      volumes:
+        - name: google-key
+          secret:
+            secretName: {{ .Values.googleKey_secret }}
+        - name: logs
+        - name: filebeat-config
+          configMap:
+            name: {{ include "datatrack.fullname" . }}-filebeat
+            items:
+              - key: filebeat.yml
+                path: filebeat.yml
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default "latest" }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy | default "Always" }}
+          env:
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /etc/keys/google_key.json
+            - name: INGRESS_HOST
+              value: {{ default "localhost" .Values.ingress.hosts.main | quote }}
+          envFrom:
+          - secretRef:
+              name: {{ include "datatrack.fullname" . }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+            - name: metrics
+              containerPort: 8081
+              protocol: TCP
+            - name: api
+              containerPort: 8083
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: google-key
+              mountPath: /etc/keys/google_key.json
+              subPath: key.json
+            - name: logs
+              mountPath: /go/src/app/logs
+        {{- if .Values.filebeat.enabled }}
+        - name: filebeat-sidecar
+          image: {{ .Values.filebeat.image | quote }}
+          readinessProbe:
+            exec:
+              command: ["filebeat", "test", "config"]
+          volumeMounts:
+            - name: logs
+              mountPath: /go/src/app/logs
+            - name: filebeat-config
+              mountPath: /usr/share/filebeat/filebeat.yml
+              subPath: filebeat.yml
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}

@@ -1,0 +1,6 @@
+{{- if .Values.ingress.enabled }}
+1. Your datatrack URL is:
+{{ range $k, $v := .Values.ingress.hosts }}
+  https://{{ $v }}
+{{- end -}}
+{{- end }}

@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "connectclub-web.fullname" . }}
+  labels:
+    {{- include "connectclub-web.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount | default "1" }}
+  selector:
+    matchLabels:
+      {{- include "connectclub-web.selectorLabels" . | nindent 6 }}
+  minReadySeconds: {{ .Values.minReadySeconds | default 5 }}
+  {{- with .Values.updateStrategy }}
+  strategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  template:
+    metadata:
+      labels:
+        {{- include "connectclub-web.selectorLabels" . | nindent 8 }}
+    spec:
+    {{- with .Values.imagePullSecret }}
+      imagePullSecrets:
+        - name: {{ . }}
+    {{- end }}
+      containers:
+        - name: web
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy | default "IfNotPresent" }}
+          env:
+          {{- range $k, $v := .Values.config }}
+            - name: {{ $k }}
+              value: {{ $v | quote }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+          # livenessProbe:
+          #   httpGet:
+          #     path: /
+          #     port: http
+          # readinessProbe:
+          #   httpGet:
+          #     path: /
+          #     port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}

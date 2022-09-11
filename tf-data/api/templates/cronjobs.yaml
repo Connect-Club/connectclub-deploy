@@ -1,0 +1,46 @@
+{{ $T := . }}
+{{ $fullname := (include "api.fullname" .) }}
+{{- range $k, $v := .Values.schedules }}
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: {{ printf "%s-%s" $fullname $k | trunc 52 }}
+  labels:
+    {{- include "api.labels" $T | nindent 4 }}
+spec:
+  schedule: {{ $v.schedule | quote }}
+  jobTemplate:
+    spec:
+      backoffLimit: {{ default  $T.Values.jobDefaults.backoffLimit $v.backoffLimit }}
+      activeDeadlineSeconds: {{ default  $T.Values.jobDefaults.activeDeadlineSeconds $v.activeDeadlineSeconds }}
+      template:
+        spec:
+          restartPolicy: {{ default  $T.Values.jobDefaults.restartPolicy $v.restartPolicy }}
+          {{- with $T.Values.imagePullSecret }}
+          imagePullSecrets:
+          - name: {{ . }}
+          {{- end }}
+          containers:
+          - name: reg-statistics
+            command: ["/bin/sh", "-c", "{{ $v.command }}"]
+            image: "{{ include "api.image" $T }}"
+            imagePullPolicy: {{ $T.Values.pullPolicy | default "Always" }}
+            volumeMounts:
+            - name: bucketkey
+              mountPath: /var/www/key.json
+              subPath: key.json
+            envFrom:
+            - secretRef:
+                name: {{ $fullname }}
+            resources:
+              {{- if $v.resources }}
+              {{- toYaml $v.resources | nindent 14 }}
+              {{- else }}
+              {{- toYaml $T.Values.jobDefaults.resources | nindent 14 }}
+              {{- end }}
+          volumes:
+          - name: bucketkey
+            secret:
+              secretName: {{ $T.Values.bucket_secret }}
+{{- end }}

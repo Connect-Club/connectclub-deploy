@@ -1,0 +1,16 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.appName }}-headless
+  namespace: {{ .Values.namespace }}
+spec:
+  ports:
+  - port: 3000
+    name: {{ .Values.appName }}-{{ .Values.appContainerPort }}
+    protocol: TCP
+    targetPort: {{ .Values.appContainerPort }}
+  selector:
+    app: {{ .Values.appName }}
+  type: ClusterIP
+  clusterIP: None

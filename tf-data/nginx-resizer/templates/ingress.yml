@@ -1,0 +1,51 @@
+{{- $T := .Values }}
+{{- range $k, $v := .Values.ingressHosts }}
+{{- if ne $v "<disabled>" -}}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  {{- if eq $k "main" }}
+  name: {{ $T.appName }}
+  {{- else }}
+  name: {{ $T.appName }}-{{ $k }}
+  {{- end }}
+  namespace: {{ $T.namespace }}
+  annotations:
+    kubernetes.io/ingress.class: nginx
+{{- if eq $T.ingressLetsencrypt true }}
+    cert-manager.io/cluster-issuer: "{{ $T.ingressLetsencryptClusterIssuer }}"
+{{- end }}
+    nginx.ingress.kubernetes.io/ssl-redirect: "{{ $T.ingressSslRedirect }}"
+    nginx.ingress.kubernetes.io/proxy-body-size: {{ $T.ingressProxyBodySize }}
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "{{ $T.ingressProxyConnectTimeout }}"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "{{ $T.ingressProxySendTimeout }}"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "{{ $T.ingressProxyReadTimeout }}"
+{{- if eq $T.ingressHttpAuth true }}
+    nginx.ingress.kubernetes.io/auth-type: basic
+    nginx.ingress.kubernetes.io/auth-secret: ingress-{{ $T.appName }}-httpauth
+    nginx.ingress.kubernetes.io/auth-realm: "Authentication Required"
+{{- end }}
+spec:
+  rules:
+  - host: {{ $v }}
+    http:
+      paths:
+      - path: /
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: {{ $T.appName }}
+            port:
+              number: 3000
+  tls:
+  - hosts:
+    - {{ $v }}
+    {{- if eq $k "main" }}
+    secretName: {{ $T.appName }}-tls
+    {{- else }}
+    secretName: {{ $T.appName }}-{{ $k }}-tls
+    {{- end }}
+
+{{- end }}
+{{- end }}

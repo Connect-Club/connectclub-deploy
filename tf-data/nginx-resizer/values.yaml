@@ -1,0 +1,27 @@
+appName: nginx-resizer
+namespace: default
+registrySecret: gitlab-registry
+appContainerPort: 3000
+image: ghcr.io/connect-club/connectclub-nginx-resizer:master-snapshot
+podAffinity: hard # soft
+resources: {}
+
+setRealIpFrom: 192.168.0.0/16
+storageScheme: https
+storageServer: storage.googleapis.com
+storagePort: 443
+storageBucket: api-files
+
+ingressHttpAuth: false
+ingressHttpSecret: false
+ingressSslRedirect: true
+ingressProxyBodySize: 100m
+ingressProxyConnectTimeout: 86400
+ingressProxySendTimeout: 86400
+ingressProxyReadTimeout: 86400
+ingressLetsencrypt: true
+ingressLetsencryptClusterIssuer: letsencrypt
+
+ingressHosts:
+  main: pics.local.domain
+

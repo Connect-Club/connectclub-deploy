@@ -1,0 +1,223 @@
+# Default values for api.
+
+replicaCount: 1
+
+pullPolicy: IfNotPresent
+
+nginx:
+  image: nginx
+  resources: {}
+
+podAffinity: soft
+
+updateStrategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 50%
+    maxSurge: 1
+
+pdb:
+  enabled: true
+  minAvailable: 1
+  ## use minAvailable OR maxUnavailable
+  # maxUnavailable: 50%
+
+initImage:
+api:
+  image: ghcr.io/connect-club/connectclub-api
+  tag: master-SNAPSHOT
+  resources: {}
+  initCommand: "cp -r /var/www/public/. /var/www/nginx/public && ls -lah /var/www/nginx/public && APP_ENV=prod bin/console d:m:m -n --allow-no-migration"
+
+messengersDefaults:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 200Mi
+    limits:
+      cpu: 1
+      memory: 600Mi
+
+messengers:
+  notifications:
+    command: php -d memory_limit=512M bin/console messenger:consume async_send_notifications --failure-limit=1
+  async:
+    command: php -d memory_limit=512M bin/console messenger:consume async --failure-limit=1
+  async-low-priority:
+    command: php -d memory_limit=512M bin/console messenger:consume async_low_priority --failure-limit=100
+  push-sender:
+    command: php -d memory_limit=512M bin/console messenger:consume push_sender --failure-limit=1000
+
+postgresql:
+  enabled: true
+  nameOverride: postgres-prod
+  postgresqlDatabase: connect_club
+  # postgresqlUsername:
+  postgresqlPassword: "super_password"
+
+bucket_secret: google-bucket-credentials
+
+apnCertificateName: aps.cer
+
+config:
+  APP_ENV: prod
+  APP_SECRET: "app_secret"
+  MESSENGER_TRANSPORT_DSN: "rabbitmq URI"
+
+  #Facebook authorization OAuth2 settings
+  FACEBOOK_OAUTH_APP_ID: ""
+  FACEBOOK_OAUTH_SECRET: ""
+  FACEBOOK_OAUTH_DEFAULT_GRAPH_VERSION: v3.2
+  FACEBOOK_OAUTH_REDIRECT_URI: ""
+
+  #Google authorization OAuth2 settings
+  GOOGLE_OAUTH_APP_ID: ""
+  GOOGLE_OAUTH_SECRET: ""
+  GOOGLE_OAUTH_REDIRECT_URI: ""
+
+  #Google cloud Storage configuration
+  GOOGLE_CLOUD_STORAGE_BUCKET: ""
+  GOOGLE_CLOUD_STORAGE_BUCKET_MOBILE_APP_LOGS: ""
+  GOOGLE_CLOUD_STORAGE_KEY_FILE: ""
+  GOOGLE_CLOUD_STORAGE_PROJECT_ID: ""
+
+  APNS_NOTIFICATION_CERTIFICATE: "/var/www/aps.cer" # check apnCertificateName
+  APNS_NOTIFICATION_CERTIFICATE_PASS_PHRASE: ""
+  GCM_NOTIFICATION_KEY: ""
+  PUSH_NOTIFICATION_ENVIRONMENT: dev
+
+  JABBER_ADMIN_USER: "admin@localhost"
+
+  JWT_TOKEN_PRIVATE_KEY: ""
+
+  JITSI_SERVER: "https://jvbuster.host"
+
+  NOTIFICATION_PUSHER_SERVER: "http://push-sender:8080"
+
+  SENTRY_DSN: "empty"
+
+  WEBRTC_URL: "http://webrtc-bot:8080"
+
+  THE_HIVE_AI_API_TOKEN: "empty"
+
+  TWILIO_AUTH_SID: "empty"
+  TWILIO_AUTH_TOKEN: "empty"
+  TWILIO_VERIFY_SERVICE_SID: "empty"
+
+  SCREEN_SHARING_HOST: "https://screen-sharing.host"
+
+  VONAGE_API_KEY: "empty"
+  VONAGE_API_SECRET: "empty"
+  VONAGE_BRAND_NAME: "Connect.Club"
+  VONAGE_SENDER_ID: "ConnectClub"
+
+  ELASTICSEARCH_HOST: "http://elasticsearch:9200"
+
+  STRIPE_SECRET_KEY: ""
+  STRIPE_PUBLIC_KEY: ""
+  STRIPE_WEBHOOK_SECRET: ""
+  STRIPE_BACKEND_NAME: "localhost"
+
+  RTP_AUDIO_HOST: "https://rtp-audio-processor-stage.cnnct.support"
+
+  TEST_PHONE_PREFIX: "+7907"
+
+  PEOPLE_MATCHING_URL: ""
+
+  SMS_VERIFICATION_IP_WHITE_LIST: "46.229.208.242,78.37.228.38,188.243.182.2"
+  INTERCOM_TOKEN: ""
+
+  ETHEREUM_CONTACT_FILE_NAME: "ConnectClubMembershipTest.json"
+  ETHEREUM_NETWORK_ID: "5"
+  ETHEREUM_NETWORK_NAME: "goerli"
+  ETHEREUM_INFURA_KEY: "empty"
+
+  TELEGRAM_BOT_API_KEY: "empty"
+
+  JOIN_DISCORD_LINK: "https://discord.gg/FZWdCn7XZU"
+
+certs:
+  b64:
+    aps.cer: "YmFzZTY0IC13IDAgL3lvdXIvY2VydGljYXRlLmNlcg=="
+  # text:
+  #   cert.json: "{}"
+
+
+probe:
+  enabled: true
+  timeout: 3
+  period: 10
+  success: 1
+  failure: 3
+  delay: 0
+
+imagePullSecret: "gitlab-registry"
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: 100m
+  hosts:
+    main: test.connect.lol
+
+jobDefaults:
+  activeDeadlineSeconds: 60
+  backoffLimit: 1
+  restartPolicy: Never
+  resources:
+    requests:
+      cpu: 100m
+      memory: 200Mi
+    limits:
+      cpu: 200m
+      memory: 400Mi
+
+schedules:
+  sync-users-with-elasticsearch:
+    schedule: "*/1 * * * *"
+    command: bin/console SyncUsersElasticsearchCommand
+
+  clean-empty-jitsi-meetings:
+    schedule: "0 * * * *"
+    command: bin/console CleanEmptyJitsiMeetings
+
+  clean-expired-participants:
+    schedule: "0 */1 * * *"
+    command: bin/console CleanExpiredVideoMeetingParticipants
+
+  clean-expired-meetings:
+    schedule: "*/30 */1 * * *"
+    command: bin/console CleanExpiredVideoMeetingCommand
+
+  clean-event-log-data:
+    schedule: "0 0 */1 * *"
+    command: bin/console CleanEventLogData
+
+  add-new-invites:
+    schedule: "0 0 */1 * *"
+    command: bin/console AddNewInvitesCommand
+
+  close-rooms-without-moderators:
+    schedule: "* * * * *"
+    command: bin/console CloseRoomWithoutModeratorsCommand
+
+  send-event-schedule-notifications:
+    schedule: "* * * * *"
+    command: bin/console SendEventScheduleNotification
+
+  remove-expired-new-badges:
+    schedule: "0 0 * * *"
+    command: bin/console app:remove-expired-new-badges
+
+  load-user-tokens-command:
+    schedule: "*/3 * * * *"
+    command: bin/console LoadUserTokensCommand

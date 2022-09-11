@@ -1,0 +1,20 @@
+[Unit]
+Description=Videobridge
+After=network.target
+
+[Service]
+TasksMax=infinity
+LimitNOFILE=65536
+Environment="JAVA_SYS_PROPS=-Dorg.ice4j.ice.harvest.STUN_MAPPING_HARVESTER_ADDRESSES=meet-jit-si-turnrelay.jitsi.net:443 -Dorg.ice4j.ipv6.DISABLED=true -Dorg.jitsi.videobridge.ENABLE_REST_SHUTDOWN=true -Dorg.jitsi.videobridge.shutdown.ALLOWED_SOURCE_REGEXP=.* -Dorg.ice4j.ice.harvest.AbstractUdpHarvester.SO_RCVBUF=20971520"
+ExecStartPre=/bin/bash -c "until curl --silent --fail -H 'Metadata-Flavor: Google' -X GET 'http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip'; do echo ".."; sleep 2; done"
+ExecStart=/opt/jvb.docker.sh --apis=rest
+ExecStop=/bin/sh -c "export NAME=$(curl -X GET http://metadata.google.internal/computeMetadata/v1/instance/name -H 'Metadata-Flavor: Google'); \
+export ZONE=$(curl -X GET http://metadata.google.internal/computeMetadata/v1/instance/zone -H 'Metadata-Flavor: Google'); \
+gcloud --quiet compute instances delete $NAME --zone=$ZONE"
+User=nobody
+Restart=on-failure
+StandardOutput=null
+# StandardError=null
+
+[Install]
+WantedBy=multi-user.target

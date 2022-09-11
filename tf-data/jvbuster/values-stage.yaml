@@ -1,0 +1,34 @@
+# Default values for connectclub-jvbuster.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 2
+
+config:
+  REDIS_HOST: 10.172.120.107
+  REDIS_PORT: 6379
+  GCLOUD_JVB_PROJECT: videobridge-stage
+  GCLOUD_JVB_SUBNET: videobridge-stage-subnet
+  JVB_CONFERENCE_NOTIFICATION_URL: https://api.stage.connect.club/api/v2/video-room/event
+  JVB_STATISTIC_NOTIFICATION_URL: https://jitsi-proxy.stage.connect.club/statistic
+  JVB_MACHINE_LIFETIME_IN_MINUTES: 2880
+  SPRING_PROFILES_ACTIVE: json-logs,gcloud-jvb
+  JVB_MIN_POOL_SIZE: 1
+  JVB_MACHINE_TYPE: c2-standard-4
+  JVB_MACHINE_ENDPOINTS_CAPACITY: 37
+  JVB_AUDIO_PROCESSOR_HTTP_URL: https://rtp-audio-processor.stage.connect.club/
+  JVB_AUDIO_PROCESSOR_IP: 10.216.15.235
+
+ingress:
+  enabled: true
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "86400"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "86400"
+    nginx.ingress.kubernetes.io/proxy-body-size: 100m
+  hosts:
+    main: jitsi-proxy-stage2.cnnct.support
+
+resources: {}

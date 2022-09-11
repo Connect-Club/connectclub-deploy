@@ -1,0 +1,59 @@
+replicaCount: 1
+
+config:
+  DATATRACK_NEWRELICNAME: "dataTrack"
+  DATATRACK_NEWRELICLICENSE: "-"
+  GCLOUD_PROJECT_ID: "google_project_id"
+
+googleKey_secret: google-bucket-credentials
+
+image:
+  repository: ghcr.io/connect-club/connectclub-datatrack
+  tag: master-snapshot
+
+filebeat:
+  enabled: true
+  image: docker.elastic.co/beats/filebeat:7.5.0
+  logstashURI: 10.1.0.49:5044
+
+imagePullSecret: "gitlab-registry"
+nameOverride: ""
+fullnameOverride: ""
+
+podManagmentPolicy: Parallel
+strategy:
+  # type: OnDelete
+  type: RollingUpdate
+# terminationTimeout: 60
+
+service:
+  type: ClusterIP
+  port: 8080
+
+ingress:
+  enabled: true
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: 100m
+  hosts:
+    main: dt.stage.connect.club
+
+resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+serviceMonitor:
+  enabled: true
+  namespace: prom-operator
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
