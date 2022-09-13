@@ -31,7 +31,7 @@ Choose one of the proposed deployment options
 
 ## 2. Build and run mobile application
 
-Clone mobile application [repository](https://github.com/Connect-Club/connectclub-mobile) and change current directory to it. Edit file ```src/api/api.ts```. Change api endpoint address in function ```getEndpoint``` for testing environment. For local backend it has to be ```http://DOCKER_HOST_ADDRESS:8092/api```, for cloud - ```https://CLOUD-ADDRESS/api```. Replace DOCKER_HOST_ADDRESS or CLOUD-ADDRESS wite appropriate values. Then set launch environment with command ```node ./scripts/init.js testing qa```. After that you have to build and run mobile application. Instruction on [the repository](https://github.com/Connect-Club/connectclub-mobile) can help you but this is not a trivial process. So you may need help from a mobile developer.
+Clone mobile application [repository](https://github.com/Connect-Club/connectclub-mobile) and change current directory to it. Edit file ```src/api/api.ts```. Change api endpoint address in function ```getEndpoint``` for testing environment. For local backend it has to be ```http://DOCKER_HOST_ADDRESS:8092/api```, for cloud - ```https://CLOUD-ADDRESS/api```. Replace DOCKER_HOST_ADDRESS or CLOUD-ADDRESS wite appropriate values. Then set launch environment with command ```node ./scripts/init.js testing qa```. After that you have to build and run mobile application. Instruction in [the repository](https://github.com/Connect-Club/connectclub-mobile) can help you but this is not a trivial process. So you may need help from a mobile developer.
 
 ## 3. Simple use case
 
