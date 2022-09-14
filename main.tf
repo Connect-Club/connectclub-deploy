@@ -20,7 +20,7 @@ variable "google_zone" {
 
 variable "videobridge_git_commit_sha" {
   type    = string
-  default = "08409457bcbe18665717e3da77b06d9ddd8d4303"
+  default = "5b8b425e5ef49aae114de14f0399602c48ed39f6"
 }
 
 variable "api_host" {

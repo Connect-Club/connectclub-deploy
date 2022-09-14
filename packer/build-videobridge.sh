@@ -39,20 +39,13 @@ echo "net.core.rmem_default=26214400" | sudo tee -a /etc/sysctl.conf
 
 # install videobridge
 ## prepare repo
-# echo "$SSH_KEY" > ~/.ssh/deploy_key
-# chmod 0600 ~/.ssh/deploy_key
-# eval $(ssh-agent )
-# ssh-add ~/.ssh/deploy_key
-# ssh-keyscan gitlab.com >> ~/.ssh/known_hosts
-# cd
-# git clone git@gitlab.com:connect.club/jitsi/jitsi-videobridge.git
 cd
 git clone https://github.com/Connect-Club/jitsi-videobridge
 cd jitsi-videobridge/
 git checkout $GIT_COMMIT_SHA
 git submodule update --init --recursive
 mkdir -p ~/.m2
-cp /tmp/maven-settings.xml ~/.m2/settings.xml
+cp settings.xml ~/.m2/settings.xml
 ## build maven
 curl https://apache-mirror.rbc.ru/pub/apache/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.zip -o maven.zip
 unzip maven.zip

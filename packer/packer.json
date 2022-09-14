@@ -2,9 +2,7 @@
   "variables": {
     "project_id": "",
     "zone": "",
-    "git_commit_sha": "",
-    "ssh_key": "",
-    "maven_token": "glpat-8C_sUkxo_KyMmnNs-ymK"
+    "git_commit_sha": ""
   },
   "builders": [
     {
@@ -32,19 +30,12 @@
         "destination": "/tmp/node_exporter.service"
     },
     {
-      "type": "file",
-      "source": "maven-settings.xml",
-      "destination": "/tmp/maven-settings.xml"
-    },
-    {
       "type": "shell",
       "scripts": [
         "build-videobridge.sh"
       ],
       "environment_vars": [
-        "GIT_COMMIT_SHA={{ user `git_commit_sha` }}",
-        "SSH_KEY={{ user `ssh_key` }}",
-        "MAVEN_TOKEN={{ user `maven_token` }}"
+        "GIT_COMMIT_SHA={{ user `git_commit_sha` }}"
       ]
     }
   ]
