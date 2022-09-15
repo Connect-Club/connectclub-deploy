@@ -31,11 +31,17 @@ Choose one of the proposed deployment options
 
 ## 2. Build and run mobile application
 
-Clone mobile application [repository](https://github.com/Connect-Club/connectclub-mobile) and change current directory to it. Edit file ```src/api/api.ts```. Change api endpoint address in function ```getEndpoint``` for testing environment. For local backend it has to be ```http://DOCKER_HOST_ADDRESS:8092/api```, for cloud - ```https://CLOUD-ADDRESS/api```. Replace DOCKER_HOST_ADDRESS or CLOUD-ADDRESS wite appropriate values. Then set launch environment with command ```node ./scripts/init.js testing qa```. After that you have to build and run mobile application. Instruction in [the repository](https://github.com/Connect-Club/connectclub-mobile) can help you but this is not a trivial process. So you may need help from a mobile developer.
+Clone mobile application [repository](https://github.com/Connect-Club/connectclub-mobile) and change the current directory to it. Edit file ```src/api/api.ts```. Change api endpoint address in function ```getEndpoint``` for testing environment. For local backend it has to be ```http://DOCKER_HOST_ADDRESS:8091/api```, for cloud - ```https://CLOUD-ADDRESS/api```. Replace DOCKER_HOST_ADDRESS or CLOUD-ADDRESS with appropriate values. Now you have to build mobile application. For android you can you use a special builder, run by this command:
+```
+docker run --rm -v $(pwd):/app ghcr.io/connect-club/connectclub-android-builder:master-SNAPSHOT testing qa
+```
+It takes long time and after completion the APK file located at ```android/app/build/outputs/apk/release/``` folder. Just install it and run.
+
+Building iOS application is more complicated, you need a Mac and help from a mobile developer:)
 
 ## 3. Simple use case
 
-At this point mobile application is up and running and showing you a screen where you can choose how you want to sign up to Connect.Club. Choose phone number, because crypto wallet does not work in this demo. Type random phone number and press Next. Wait about 10 seconds and type test code 1111. On the next screens fill down all necessary information. When application ask you to wait for invite from other user, you have to do it manually in database. In case of local launch just use this command:
+At this point mobile application is up and running and showing you a screen where you can choose how you want to sign up to Connect.Club. Choose phone number, because a crypto wallet method does not work in this demo. Type random phone number and press Next. Wait about 10 seconds and type test code 1111. On the next screens fill down all necessary information. When application ask you to wait for an invite from other user, you will have to do it manually in database. In case of local launch just use this command:
 ```
 docker exec connectclub-deploy-primary-db-1 psql -c "update users set state='verified' where state='waiting_list'"
 ```
