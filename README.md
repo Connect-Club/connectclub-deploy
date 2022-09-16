@@ -31,7 +31,7 @@ Choose one of the proposed deployment options
 
 ## 2. Build and run mobile application
 
-Clone mobile application [repository](https://github.com/Connect-Club/connectclub-mobile) and change the current directory to it. Edit file ```src/api/api.ts```. Change api endpoint address in function ```getEndpoint``` for testing environment. For local backend it has to be ```http://DOCKER_HOST_ADDRESS:8091/api```, for cloud - ```https://CLOUD-ADDRESS/api```. Replace DOCKER_HOST_ADDRESS or CLOUD-ADDRESS with appropriate values. Now you have to build mobile application. For android you can you use a special builder, run by this command:
+Clone mobile application [repository](https://github.com/Connect-Club/connectclub-mobile) and change the current directory to it. Edit file ```src/api/api.ts```. Change api endpoint address in function ```getEndpoint``` for testing environment. For local backend it has to be ```http://DOCKER_HOST_ADDRESS:8091/api```, for cloud - ```https://CLOUD-ADDRESS/api```. Replace DOCKER_HOST_ADDRESS or CLOUD-ADDRESS with appropriate values. Now you have to build mobile application. For android you can you use a special builder, run by this command (if you use WINDOWS [this](https://stackoverflow.com/questions/41485217/mount-current-directory-as-a-volume-in-docker-on-windows-10) might help):
 ```
 docker run --rm -v $(pwd):/app ghcr.io/connect-club/connectclub-android-builder:master-SNAPSHOT testing qa
 ```
